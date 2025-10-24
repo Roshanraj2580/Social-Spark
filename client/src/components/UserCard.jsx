@@ -1,6 +1,6 @@
 import React from 'react'
 import { dummyUserData } from '../assets/assets'
-import { MapPin, MessageCircle, Plus, UserPlus } from 'lucide-react'
+import { MapPin, MessageCircle, Plus, UserPlus, Eye, Heart } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useAuth } from '@clerk/clerk-react'
 import { useNavigate } from 'react-router-dom'
@@ -50,39 +50,107 @@ const UserCard = ({user}) => {
         }
     }
 
+    const handleViewProfile = () => {
+        navigate('/profile/' + user._id)
+    }
+
   return (
-    <div key={user._id} className='p-4 pt-6 flex flex-col justify-between w-72 shadow border border-gray-200 rounded-md'>
-        <div className='text-center'>
-            <img src={user.profile_picture} alt="" className='rounded-full w-16 shadow-md mx-auto'/>
-            <p className='mt-4 font-semibold'>{user.full_name}</p>
-            {user.username && <p className='text-gray-500 font-light'>@{user.username}</p>}
-            {user.bio && <p className='text-gray-600 mt-2 text-center text-sm px-4'>{user.bio}</p>}
+    <div key={user._id} className='group relative bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 overflow-hidden'>
+      {/* Cover Photo Background */}
+      <div className='h-20 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 relative'>
+        <div className='absolute inset-0 bg-black bg-opacity-20'></div>
+      </div>
+      
+      {/* Profile Section */}
+      <div className='px-6 pb-6 -mt-10 relative'>
+        {/* Profile Picture */}
+        <div className='relative'>
+          <img 
+            src={user.profile_picture} 
+            alt="" 
+            className='w-20 h-20 rounded-full border-4 border-white shadow-lg mx-auto object-cover'
+          />
+          {/* Online Status Indicator */}
+          <div className='absolute bottom-1 right-1/2 transform translate-x-6 w-4 h-4 bg-green-500 rounded-full border-2 border-white'></div>
+        </div>
+        
+        {/* User Info */}
+        <div className='text-center mt-4'>
+          <h3 className='font-bold text-lg text-gray-900 group-hover:text-purple-600 transition-colors'>
+            {user.full_name}
+          </h3>
+          <p className='text-gray-500 text-sm font-medium'>
+            @{user.username || user.full_name?.toLowerCase().replace(/\s+/g, '_') || 'user'}
+          </p>
+          {user.bio && (
+            <p className='text-gray-600 text-sm mt-2 line-clamp-2 px-2'>
+              {user.bio}
+            </p>
+          )}
         </div>
 
-        <div className='flex items-center justify-center gap-2 mt-4 text-xs text-gray-600'>
-            <div className='flex items-center gap-1 border border-gray-300 rounded-full px-3 py-1'>
-                <MapPin className='w-4 h-4'/> {user.location}
-            </div>
-            <div className='flex items-center gap-1 border border-gray-300 rounded-full px-3 py-1'>
-                <span>{user.followers.length}</span> Followers
-            </div>
+        {/* Stats */}
+        <div className='flex items-center justify-center gap-4 mt-4 text-xs text-gray-600'>
+          <div className='flex items-center gap-1 bg-gray-50 rounded-full px-3 py-1.5'>
+            <MapPin className='w-3 h-3 text-purple-500'/> 
+            <span className='font-medium'>{user.location || 'Unknown'}</span>
+          </div>
+          <div className='flex items-center gap-1 bg-gray-50 rounded-full px-3 py-1.5'>
+            <Heart className='w-3 h-3 text-red-500'/> 
+            <span className='font-medium'>{user.followers?.length || 0}</span>
+          </div>
         </div>
 
-        <div className='flex mt-4 gap-2'>
-            {/* Follow Button */}
-            <button onClick={handleFollow} disabled={currentUser?.following.includes(user._id)} className='w-full py-2 rounded-md  flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white cursor-pointer'>
-                <UserPlus className='w-4 h-4'/> {currentUser?.following.includes(user._id) ? 'Following' : 'Follow'}
-            </button>
-            {/* Connection Request Button / Message Button */}
-            <button onClick={handleConnectionRequest} className='flex items-center justify-center w-16 border text-slate-500 group rounded-md cursor-pointer active:scale-95 transition'>
-                {
-                    currentUser?.connections.includes(user._id) ? 
-                    <MessageCircle className='w-5 h-5 group-hover:scale-105 transition'/>
-                    :
-                    <Plus className='w-5 h-5 group-hover:scale-105 transition'/>
-                }
-            </button>
+        {/* Action Buttons */}
+        <div className='flex gap-2 mt-6'>
+          {/* View Profile Button */}
+          <button 
+            onClick={handleViewProfile}
+            className='flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2'
+          >
+            <Eye className='w-4 h-4'/>
+            View Profile
+          </button>
+          
+          {/* Follow Button */}
+          <button 
+            onClick={handleFollow} 
+            disabled={currentUser?.following?.includes(user._id)} 
+            className={`flex-1 py-2.5 px-4 rounded-xl font-medium text-sm transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2 ${
+              currentUser?.following?.includes(user._id) 
+                ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white'
+            }`}
+          >
+            <UserPlus className='w-4 h-4'/> 
+            {currentUser?.following?.includes(user._id) ? 'Following' : 'Follow'}
+          </button>
         </div>
+
+        {/* Connection Button */}
+        <div className='mt-3'>
+          <button 
+            onClick={handleConnectionRequest} 
+            className={`w-full py-2 rounded-xl font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
+              currentUser?.connections?.includes(user._id)
+                ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {currentUser?.connections?.includes(user._id) ? (
+              <>
+                <MessageCircle className='w-4 h-4'/>
+                Message
+              </>
+            ) : (
+              <>
+                <Plus className='w-4 h-4'/>
+                Connect
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

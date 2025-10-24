@@ -12,6 +12,9 @@ const PostCard = ({post}) => {
 
     const postWithHashtags = post.content.replace(/(#\w+)/g, '<span class="text-indigo-600">$1</span>')
     const [likes, setLikes] = useState(post.likes_count)
+    const [commentsCount, setCommentsCount] = useState(post.comments ? post.comments.length : 0)
+    const [shares, setShares] = useState(post.shares_count || 0)
+    const [newComment, setNewComment] = useState("")
     const currentUser = useSelector((state) => state.user.value)
 
     const { getToken } = useAuth()
@@ -39,6 +42,45 @@ const PostCard = ({post}) => {
 
     const navigate = useNavigate()
 
+    const handleAddComment = async () =>{
+        if(!newComment.trim()) return
+        try {
+            const { data } = await api.post('/api/post/comment', {
+                postId: post._id, 
+                text: newComment.trim()
+            }, {
+                headers: { 
+                    Authorization: `Bearer ${await getToken()}`
+                }
+            })
+            if(data.success){
+                setCommentsCount(data.comments.length)
+                setNewComment("")
+                toast.success(data.message)
+            }else{
+                toast.error(data.message)
+            }
+        } catch (error) {
+            console.error('Comment error:', error)
+            toast.error(error.response?.data?.message || error.message)
+        }
+    }
+
+    const handleShare = async () =>{
+        try {
+            const { data } = await api.post('/api/post/share', {postId: post._id}, {headers: { Authorization: `Bearer ${await getToken()}` }})
+            if(data.success){
+                toast.success('Post link copied')
+                setShares(data.shares)
+                await navigator.clipboard.writeText(window.location.origin + '/profile/' + post.user._id)
+            }else{
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
+
   return (
     <div className='bg-white rounded-xl shadow p-4 space-y-4 w-full max-w-2xl'>
         {/* User Info */}
@@ -49,7 +91,7 @@ const PostCard = ({post}) => {
                     <span>{post.user.full_name}</span>
                     <BadgeCheck className='w-4 h-4 text-blue-500'/>
                 </div>
-                <div className='text-gray-500 text-sm'>@{post.user.username} • {moment(post.createdAt).fromNow()}</div>
+                <div className='text-gray-500 text-sm'>@{post.user.username || post.user.full_name?.toLowerCase().replace(/\s+/g, '_') || 'user'} • {moment(post.createdAt).fromNow()}</div>
             </div>
         </div>
          {/* Content */}
@@ -69,14 +111,20 @@ const PostCard = ({post}) => {
                 <span>{likes.length}</span>
             </div>
             <div className='flex items-center gap-1'>
-                <MessageCircle className="w-4 h-4"/>
-                <span>{12}</span>
+                <MessageCircle className="w-4 h-4 cursor-pointer" onClick={()=> document.getElementById('cmt-' + post._id)?.focus()}/>
+                <span>{commentsCount}</span>
             </div>
             <div className='flex items-center gap-1'>
-                <Share2 className="w-4 h-4"/>
-                <span>{7}</span>
+                <Share2 className="w-4 h-4 cursor-pointer" onClick={handleShare}/>
+                <span>{shares}</span>
             </div>
 
+        </div>
+
+        {/* Add Comment */}
+        <div className='flex items-center gap-2'>
+            <input id={'cmt-' + post._id} value={newComment} onChange={(e)=> setNewComment(e.target.value)} placeholder='Write a comment...' className='flex-1 border rounded px-3 py-2 text-sm'/>
+            <button onClick={handleAddComment} className='px-3 py-2 text-sm bg-indigo-600 text-white rounded'>Comment</button>
         </div>
 
 

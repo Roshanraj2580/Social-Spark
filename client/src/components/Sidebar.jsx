@@ -15,7 +15,15 @@ const Sidebar = ({sidebarOpen, setSidebarOpen}) => {
   return (
     <div className={`w-60 xl:w-72 bg-white border-r border-gray-200 flex flex-col justify-between items-center max-sm:absolute top-0 bottom-0 z-20 ${sidebarOpen ? 'translate-x-0' : 'max-sm:-translate-x-full'} transition-all duration-300 ease-in-out`}>
       <div className='w-full'>
-            <img onClick={()=> navigate('/')} src={assets.logo} className='w-26 ml-7 my-2 cursor-pointer' alt="" />
+            <div onClick={()=> navigate('/')} className='flex items-center gap-3 ml-7 my-4 cursor-pointer group'>
+              <img src={assets.logo} className='w-10 h-10 object-contain group-hover:scale-105 transition-transform' alt="Social Spark Logo" />
+              <div>
+                <h1 className='text-lg font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 bg-clip-text text-transparent'>
+                  Social Spark
+                </h1>
+                <p className='text-xs text-gray-500 font-medium'>Connect & Share</p>
+              </div>
+            </div>
             <hr className='border-gray-300 mb-8'/>
 
             <MenuItems setSidebarOpen={setSidebarOpen}/>
@@ -31,7 +39,7 @@ const Sidebar = ({sidebarOpen, setSidebarOpen}) => {
                 <UserButton />
                 <div>
                     <h1 className='text-sm font-medium'>{user.full_name}</h1>
-                    <p className='text-xs text-gray-500'>@{user.username}</p>
+                    <p className='text-xs text-gray-500'>@{user.username || user.full_name?.toLowerCase().replace(/\s+/g, '_') || 'user'}</p>
                 </div>
             </div>
             <LogOut onClick={signOut} className='w-4.5 text-gray-400 hover:text-gray-700 transition cursor-pointer'/>

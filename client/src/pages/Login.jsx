@@ -11,7 +11,15 @@ const Login = () => {
 
       {/* left side : Branding  */}
       <div className='flex-1 flex flex-col items-start justify-between p-6 md:p-10 lg:pl-40'>
-        <img src={assets.logo} alt="" className='h-12 object-contain'/>
+        <div className='flex items-center gap-3 mb-8'>
+          <img src={assets.logo} alt="Social Spark Logo" className='h-12 w-12 object-contain'/>
+          <div>
+            <h1 className='text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 bg-clip-text text-transparent'>
+              Social Spark
+            </h1>
+            <p className='text-sm text-gray-600 font-medium'>Connect & Share</p>
+          </div>
+        </div>
         <div>
             <div className='flex items-center gap-3 mb-4 max-md:mt-10'> 
                 <img src={assets.group_users} alt="" className='h-8 md:h-10'/>
@@ -23,7 +31,7 @@ const Login = () => {
                 </div>
             </div>
             <h1 className='text-3xl md:text-6xl md:pb-2 font-bold bg-gradient-to-r from-indigo-950 to-indigo-800 bg-clip-text text-transparent'>More than just friends truly connect</h1>
-            <p className='text-xl md:text-3xl text-indigo-900 max-w-72 md:max-w-md'>connect with global community on pingup.</p>
+            <p className='text-xl md:text-3xl text-indigo-900 max-w-72 md:max-w-md'>connect with global community on Social Spark.</p>
         </div>
         <span className='md:h-10'></span>
       </div>

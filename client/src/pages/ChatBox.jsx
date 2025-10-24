@@ -81,7 +81,7 @@ const ChatBox = () => {
         <img src={user.profile_picture} alt="" className="size-8 rounded-full"/>
         <div>
           <p className="font-medium">{user.full_name}</p>
-          <p className="text-sm text-gray-500 -mt-1.5">@{user.username}</p>
+          <p className="text-sm text-gray-500 -mt-1.5">@{user.username || user.full_name?.toLowerCase().replace(/\s+/g, '_') || 'user'}</p>
         </div>
       </div>
       <div className='p-5 md:px-10 h-full overflow-y-scroll'>

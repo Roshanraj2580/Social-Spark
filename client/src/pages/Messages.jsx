@@ -25,7 +25,7 @@ const Messages = () => {
               <img src={user.profile_picture} alt="" className='rounded-full size-12 mx-auto'/>
               <div className='flex-1'>
                 <p className='font-medium text-slate-700'>{user.full_name}</p>
-                <p className='text-slate-500'>@{user.username}</p>
+                <p className='text-slate-500'>@{user.username || user.full_name?.toLowerCase().replace(/\s+/g, '_') || 'user'}</p>
                 <p className='text-sm text-gray-600'>{user.bio}</p>
               </div>
 
