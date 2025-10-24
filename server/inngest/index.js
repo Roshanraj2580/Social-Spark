@@ -6,7 +6,11 @@ import Story from "../models/Story.js";
 import Message from "../models/Message.js";
 
 // Create a client to send and receive events
-export const inngest = new Inngest({ id: "pingup-app" });
+export const inngest = new Inngest({ 
+    id: "socialspark-app",
+    eventKey: process.env.INNGEST_EVENT_KEY,
+    signingKey: process.env.INNGEST_SIGNING_KEY
+});
 
 // Inngest Function to save user data to a database
 const syncUserCreation = inngest.createFunction(
@@ -78,7 +82,7 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
                 <p>You have a new connection request from ${connection.from_user_id.full_name} - @${connection.from_user_id.username}</p>
                 <p>Click <a href="${process.env.FRONTEND_URL}/connections" style="color: #10b981;">here</a> to accept or reject the request</p>
                 <br/>
-                <p>Thanks,<br/>PingUp - Stay Connected</p>
+                <p>Thanks,<br/>Social Spark - Stay Connected</p>
             </div>`;
 
             await sendEmail({
@@ -104,7 +108,7 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
                 <p>You have a new connection request from ${connection.from_user_id.full_name} - @${connection.from_user_id.username}</p>
                 <p>Click <a href="${process.env.FRONTEND_URL}/connections" style="color: #10b981;">here</a> to accept or reject the request</p>
                 <br/>
-                <p>Thanks,<br/>PingUp - Stay Connected</p>
+                <p>Thanks,<br/>Social Spark - Stay Connected</p>
             </div>`;
 
             await sendEmail({
@@ -155,7 +159,7 @@ const sendNotificationOfUnseenMessages = inngest.createFunction(
                 <p>You have ${unseenCount[userId]} unseen messages</p>
                 <p>Click <a href="${process.env.FRONTEND_URL}/messages" style="color: #10b981;">here</a> to view them</p>
                 <br/>
-                <p>Thanks,<br/>PingUp - Stay Connected</p>
+                <p>Thanks,<br/>Social Spark - Stay Connected</p>
             </div>
             `;
 

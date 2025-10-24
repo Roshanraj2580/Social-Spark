@@ -88,3 +88,62 @@ export const likePost = async (req, res) =>{
         res.json({ success: false, message: error.message });
     }
 }
+
+// Add Comment
+export const addComment = async (req, res) => {
+    try {
+        const { userId } = req.auth()
+        const { postId, text } = req.body
+
+        if(!text || !text.trim()){
+            return res.json({success: false, message: 'Comment cannot be empty'})
+        }
+
+        const post = await Post.findById(postId)
+        if(!post){
+            return res.json({success: false, message: 'Post not found'})
+        }
+
+        post.comments.push({ user: userId, text: text.trim() })
+        await post.save()
+
+        const populated = await Post.findById(postId).populate('comments.user', 'full_name username profile_picture')
+        res.json({success: true, message: 'Comment added', comments: populated.comments})
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
+// Get Comments
+export const getComments = async (req, res) => {
+    try {
+        const { postId } = req.params
+        const post = await Post.findById(postId).populate('comments.user', 'full_name username profile_picture')
+        if(!post){
+            return res.json({success: false, message: 'Post not found'})
+        }
+        res.json({success: true, comments: post.comments})
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
+// Increment share count
+export const sharePost = async (req, res) => {
+    try {
+        const { postId } = req.body
+        const post = await Post.findById(postId)
+        if(!post){
+            return res.json({success: false, message: 'Post not found'})
+        }
+        post.shares_count = (post.shares_count || 0) + 1
+        await post.save()
+        res.json({success: true, message: 'Post shared', shares: post.shares_count})
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+}

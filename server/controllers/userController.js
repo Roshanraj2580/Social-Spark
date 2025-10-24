@@ -7,6 +7,54 @@ import fs from 'fs'
 import { clerkClient } from "@clerk/express";
 
 
+// Create User (for Clerk webhook)
+export const createUser = async (req, res) => {
+    try {
+        const { id, email_addresses, first_name, last_name, image_url } = req.body.data;
+        
+        if (!id) {
+            return res.json({ success: false, message: "User ID is required" });
+        }
+        
+        // Check if user already exists
+        const existingUser = await User.findById(id);
+        if (existingUser) {
+            return res.json({ success: true, user: existingUser, message: "User already exists" });
+        }
+
+        // Create new user with fallback values
+        const email = email_addresses?.[0]?.email_address || 'no-email@example.com';
+        const fullName = `${first_name || ''} ${last_name || ''}`.trim() || 'User';
+        
+        // Generate a better username
+        let username;
+        if (email && email !== 'no-email@example.com') {
+            username = email.split('@')[0] + '_' + id.slice(-4);
+        } else if (fullName && fullName !== 'User') {
+            // Use first name + last 4 chars of ID
+            const firstName = fullName.split(' ')[0].toLowerCase();
+            username = firstName + '_' + id.slice(-4);
+        } else {
+            // Fallback to user + last 4 chars of ID
+            username = 'user_' + id.slice(-4);
+        }
+
+        const newUser = await User.create({
+            _id: id,
+            email: email,
+            full_name: fullName,
+            profile_picture: image_url || '',
+            username: username
+        });
+
+        console.log('User created successfully:', newUser._id);
+        res.json({ success: true, user: newUser, message: "User created successfully" });
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.json({ success: false, message: error.message });
+    }
+}
+
 // Get User Data using userId
 export const getUserData = async (req, res) => {
     try {
@@ -51,42 +99,50 @@ export const updateUserData = async (req, res) => {
         const cover = req.files.cover && req.files.cover[0]
 
         if(profile){
-            const buffer = fs.readFileSync(profile.path)
-            const response = await imagekit.upload({
-                file: buffer,
-                fileName: profile.originalname,
-            })
+            if(imagekit) {
+                const buffer = fs.readFileSync(profile.path)
+                const response = await imagekit.upload({
+                    file: buffer,
+                    fileName: profile.originalname,
+                })
 
-            const url = imagekit.url({
-                path: response.filePath,
-                transformation: [
-                    {quality: 'auto'},
-                    { format: 'webp' },
-                    { width: '512' }
-                ]
-            })
-            updatedData.profile_picture = url;
+                const url = imagekit.url({
+                    path: response.filePath,
+                    transformation: [
+                        {quality: 'auto'},
+                        { format: 'webp' },
+                        { width: '512' }
+                    ]
+                })
+                updatedData.profile_picture = url;
 
-            const blob = await fetch(url).then(res => res.blob());
-            await clerkClient.users.updateUserProfileImage(userId, { file: blob });
+                const blob = await fetch(url).then(res => res.blob());
+                await clerkClient.users.updateUserProfileImage(userId, { file: blob });
+            } else {
+                console.log('ImageKit not configured - skipping profile picture upload');
+            }
         }
 
         if(cover){
-            const buffer = fs.readFileSync(cover.path)
-            const response = await imagekit.upload({
-                file: buffer,
-                fileName: profile.originalname,
-            })
+            if(imagekit) {
+                const buffer = fs.readFileSync(cover.path)
+                const response = await imagekit.upload({
+                    file: buffer,
+                    fileName: cover.originalname,
+                })
 
-            const url = imagekit.url({
-                path: response.filePath,
-                transformation: [
-                    {quality: 'auto'},
-                    { format: 'webp' },
-                    { width: '1280' }
-                ]
-            })
-            updatedData.cover_photo = url;
+                const url = imagekit.url({
+                    path: response.filePath,
+                    transformation: [
+                        {quality: 'auto'},
+                        { format: 'webp' },
+                        { width: '1280' }
+                    ]
+                })
+                updatedData.cover_photo = url;
+            } else {
+                console.log('ImageKit not configured - skipping cover photo upload');
+            }
         }
 
         const user = await User.findByIdAndUpdate(userId, updatedData, {new : true})
